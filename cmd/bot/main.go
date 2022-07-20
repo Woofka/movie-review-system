@@ -4,6 +4,7 @@ import (
 	"log"
 	"movie-review-system/config"
 	"movie-review-system/internal/commander"
+	"movie-review-system/internal/handlers"
 )
 
 func main() {
@@ -11,6 +12,7 @@ func main() {
 	if err != nil {
 		log.Panic(err)
 	}
+	handlers.RegisterHandlers(cmd)
 
 	err = cmd.Run()
 	if err != nil {
