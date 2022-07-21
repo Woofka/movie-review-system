@@ -31,9 +31,9 @@ func helpHandler(_ string) string {
 	return "/help - show this message.\n" +
 		"/list - show all reviews.\n" +
 		"/add `<reviewer> \"<movie title>\" \"<review text>\" <rating>` - add new review. " +
-		"`<rating>` should be an integer between 0 and 10." +
-		"/update `<id> <reviewer> \"<movie title>\" \"<review text>\" <rating>` - update review." +
-		"/delete `<id>` - removes review"
+		"`<rating>` should be an integer between 0 and 10.\n" +
+		"/update `<id> <reviewer> \"<movie title>\" \"<review text>\" <rating>` - update review.\n" +
+		"/delete `<id>` - removes review."
 }
 
 func listHandler(_ string) string {
