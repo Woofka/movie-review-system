@@ -14,6 +14,7 @@ const (
 	listCmd   = "list"
 	addCmd    = "add"
 	updateCmd = "update"
+	deleteCmd = "delete"
 )
 
 func parseArgs(args string) ([]string, error) {
@@ -31,7 +32,8 @@ func helpHandler(_ string) string {
 		"/list - show all reviews.\n" +
 		"/add `<reviewer> \"<movie title>\" \"<review text>\" <rating>` - add new review. " +
 		"`<rating>` should be an integer between 0 and 10." +
-		"/update `<id> <reviewer> \"<movie title>\" \"<review text>\" <rating>` - update review."
+		"/update `<id> <reviewer> \"<movie title>\" \"<review text>\" <rating>` - update review." +
+		"/delete `<id>` - removes review"
 }
 
 func listHandler(_ string) string {
@@ -107,9 +109,32 @@ func updateHandler(s string) string {
 	return fmt.Sprintf("Review #%d was successfully updated.", r.GetId())
 }
 
+func deleteHandler(s string) string {
+	if len(s) == 0 {
+		return "No arguments were given. See /help for details."
+	}
+	args, err := parseArgs(s)
+	if err != nil {
+		return "Invalid arguments. Make sure you don't use quotes in a quoted part."
+	}
+	if len(args) != 1 {
+		return fmt.Sprintf("Invalid amount of arguments. Expected 1, but got %d instead.", len(args))
+	}
+	id, err := strconv.Atoi(args[0])
+	if err != nil {
+		return fmt.Sprintf("Argument should be integer.")
+	}
+	err = storage.Delete(uint(id))
+	if err != nil {
+		return fmt.Sprintf("No review to delete.")
+	}
+	return fmt.Sprintf("Review #%d was successfully deleted.", uint(id))
+}
+
 func RegisterHandlers(c *commander.Commander) {
 	c.RegisterHandler(helpCmd, helpHandler)
 	c.RegisterHandler(listCmd, listHandler)
 	c.RegisterHandler(addCmd, addHandler)
 	c.RegisterHandler(updateCmd, updateHandler)
+	c.RegisterHandler(deleteCmd, deleteHandler)
 }

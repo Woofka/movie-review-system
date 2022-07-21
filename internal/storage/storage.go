@@ -40,3 +40,11 @@ func Update(r *Review) error {
 	data[r.GetId()] = r
 	return nil
 }
+
+func Delete(id uint) error {
+	if _, ok := data[id]; !ok {
+		return fmt.Errorf("review with id %d does not exists", id)
+	}
+	delete(data, id)
+	return nil
+}
