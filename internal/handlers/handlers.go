@@ -86,23 +86,37 @@ func updateHandler(s string) string {
 	if len(args) != 5 {
 		return fmt.Sprintf("Invalid amount of arguments. Expected 5, but got %d instead.", len(args))
 	}
-	idInt, err := strconv.Atoi(args[0])
+	id, err := strconv.Atoi(args[0])
 	if err != nil {
 		return fmt.Sprintf("1st argument should be integer.")
-	}
-	id := uint(idInt)
-	if !storage.Exist(id) {
-		return fmt.Sprintf("Review #%d does not exist.", id)
 	}
 	rating, err := strconv.Atoi(args[4])
 	if err != nil {
 		return "5th argument should be integer."
 	}
-	r, err := storage.MakeReview(id, args[1], args[2], args[3], uint8(rating))
+
+	r, err := storage.Get(uint(id))
 	if err != nil {
 		return err.Error()
 	}
-	err = storage.Update(r)
+	err = r.SetReviewer(args[1])
+	if err != nil {
+		return err.Error()
+	}
+	err = r.SetMovieTitle(args[2])
+	if err != nil {
+		return err.Error()
+	}
+	err = r.SetText(args[3])
+	if err != nil {
+		return err.Error()
+	}
+	err = r.SetRating(uint8(rating))
+	if err != nil {
+		return err.Error()
+	}
+
+	err = storage.Update(&r)
 	if err != nil {
 		return err.Error()
 	}

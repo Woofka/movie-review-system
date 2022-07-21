@@ -28,9 +28,12 @@ func Add(r *Review) error {
 	return nil
 }
 
-func Exist(id uint) bool {
-	_, ok := data[id]
-	return ok
+func Get(id uint) (Review, error) {
+	r, ok := data[id]
+	if !ok {
+		return Review{}, fmt.Errorf("review with id %d does not exists", id)
+	}
+	return *r, nil
 }
 
 func Update(r *Review) error {
