@@ -12,7 +12,7 @@ type Review struct {
 	rating     uint8
 }
 
-func NewReview(reviewer, movieTitle, text string, rating uint8) (*Review, error) {
+func baseReview(reviewer, movieTitle, text string, rating uint8) (*Review, error) {
 	r := Review{}
 	if err := r.SetReviewer(reviewer); err != nil {
 		return nil, err
@@ -26,9 +26,26 @@ func NewReview(reviewer, movieTitle, text string, rating uint8) (*Review, error)
 	if err := r.SetRating(rating); err != nil {
 		return nil, err
 	}
+	return &r, nil
+}
+
+func NewReview(reviewer, movieTitle, text string, rating uint8) (*Review, error) {
+	r, err := baseReview(reviewer, movieTitle, text, rating)
+	if err != nil {
+		return nil, err
+	}
 	lastId++
 	r.id = lastId
-	return &r, nil
+	return r, nil
+}
+
+func MakeReview(id uint, reviewer, movieTitle, text string, rating uint8) (*Review, error) {
+	r, err := baseReview(reviewer, movieTitle, text, rating)
+	if err != nil {
+		return nil, err
+	}
+	r.id = id
+	return r, nil
 }
 
 func (r *Review) SetReviewer(reviewer string) error {

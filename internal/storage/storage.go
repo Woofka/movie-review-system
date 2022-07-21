@@ -23,3 +23,16 @@ func Add(r *Review) error {
 	data[r.GetId()] = r
 	return nil
 }
+
+func Exist(id uint) bool {
+	_, ok := data[id]
+	return ok
+}
+
+func Update(r *Review) error {
+	if _, ok := data[r.GetId()]; !ok {
+		return fmt.Errorf("review with id %d does not exists", r.GetId())
+	}
+	data[r.GetId()] = r
+	return nil
+}
