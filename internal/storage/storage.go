@@ -1,6 +1,9 @@
 package storage
 
-import "fmt"
+import (
+	"fmt"
+	"sort"
+)
 
 var data map[uint]*Review
 
@@ -13,6 +16,7 @@ func List() []*Review {
 	for _, v := range data {
 		res = append(res, v)
 	}
+	sort.Slice(res, func(i, j int) bool { return res[i].id < res[j].id })
 	return res
 }
 
