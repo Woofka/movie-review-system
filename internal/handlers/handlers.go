@@ -3,10 +3,11 @@ package handlers
 import (
 	"encoding/csv"
 	"fmt"
-	"gitlab.ozon.dev/Woofka/movie-review-system/internal/commander"
-	"gitlab.ozon.dev/Woofka/movie-review-system/internal/storage"
 	"strconv"
 	"strings"
+
+	"gitlab.ozon.dev/Woofka/movie-review-system/internal/commander"
+	"gitlab.ozon.dev/Woofka/movie-review-system/internal/storage"
 )
 
 const (

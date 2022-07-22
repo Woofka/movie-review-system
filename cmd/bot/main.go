@@ -1,10 +1,11 @@
 package main
 
 import (
+	"log"
+
 	"gitlab.ozon.dev/Woofka/movie-review-system/config"
 	"gitlab.ozon.dev/Woofka/movie-review-system/internal/commander"
 	"gitlab.ozon.dev/Woofka/movie-review-system/internal/handlers"
-	"log"
 )
 
 func main() {

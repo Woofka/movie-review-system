@@ -1,9 +1,10 @@
 package commander
 
 import (
+	"log"
+
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/pkg/errors"
-	"log"
 )
 
 type CmdHandler func(string) string
