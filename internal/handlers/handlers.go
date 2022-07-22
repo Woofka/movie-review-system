@@ -3,8 +3,8 @@ package handlers
 import (
 	"encoding/csv"
 	"fmt"
-	"movie-review-system/internal/commander"
-	"movie-review-system/internal/storage"
+	"gitlab.ozon.dev/Woofka/movie-review-system/internal/commander"
+	"gitlab.ozon.dev/Woofka/movie-review-system/internal/storage"
 	"strconv"
 	"strings"
 )

@@ -1,4 +1,4 @@
-module movie-review-system
+module gitlab.ozon.dev/Woofka/movie-review-system
 
 go 1.18
 
