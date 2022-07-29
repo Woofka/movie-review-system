@@ -3,19 +3,53 @@ package main
 import (
 	"log"
 
-	"gitlab.ozon.dev/Woofka/movie-review-system/config"
-	"gitlab.ozon.dev/Woofka/movie-review-system/internal/commander"
-	"gitlab.ozon.dev/Woofka/movie-review-system/internal/handlers"
+	"gitlab.ozon.dev/Woofka/movie-review-system/internal/config"
+	botPkg "gitlab.ozon.dev/Woofka/movie-review-system/internal/pkg/bot"
+	cmdAddPkg "gitlab.ozon.dev/Woofka/movie-review-system/internal/pkg/bot/command/add"
+	cmdDeletePkg "gitlab.ozon.dev/Woofka/movie-review-system/internal/pkg/bot/command/delete"
+	cmdGetPkg "gitlab.ozon.dev/Woofka/movie-review-system/internal/pkg/bot/command/get"
+	cmdHelpPkg "gitlab.ozon.dev/Woofka/movie-review-system/internal/pkg/bot/command/help"
+	cmdListPkg "gitlab.ozon.dev/Woofka/movie-review-system/internal/pkg/bot/command/list"
+	cmdUpdatePkg "gitlab.ozon.dev/Woofka/movie-review-system/internal/pkg/bot/command/update"
+	reviewPkg "gitlab.ozon.dev/Woofka/movie-review-system/internal/pkg/core/review"
 )
 
 func main() {
-	cmd, err := commander.Init(config.ApiToken, false)
-	if err != nil {
-		log.Panic(err)
+	var review reviewPkg.Interface
+	{
+		review = reviewPkg.New()
 	}
-	handlers.RegisterHandlers(cmd)
 
-	err = cmd.Run()
+	var bot botPkg.Interface
+	{
+		bot = botPkg.MustNew(config.ApiToken, false)
+
+		commandAdd := cmdAddPkg.New(review)
+		bot.RegisterHandler(commandAdd)
+
+		commandGet := cmdGetPkg.New(review)
+		bot.RegisterHandler(commandGet)
+
+		commandUpdate := cmdUpdatePkg.New(review)
+		bot.RegisterHandler(commandUpdate)
+
+		commandDelete := cmdDeletePkg.New(review)
+		bot.RegisterHandler(commandDelete)
+
+		commandList := cmdListPkg.New(review)
+		bot.RegisterHandler(commandList)
+
+		commandHelp := cmdHelpPkg.New(map[string]string{
+			commandAdd.Name():    commandAdd.Description(),
+			commandGet.Name():    commandGet.Description(),
+			commandUpdate.Name(): commandUpdate.Description(),
+			commandDelete.Name(): commandDelete.Description(),
+			commandList.Name():   commandList.Description(),
+		})
+		bot.RegisterHandler(commandHelp)
+	}
+
+	err := bot.Run()
 	if err != nil {
 		log.Panic(err)
 	}

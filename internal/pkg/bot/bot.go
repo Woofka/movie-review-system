@@ -1,41 +1,44 @@
-package commander
+package bot
 
 import (
 	"log"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/pkg/errors"
+	commandPkg "gitlab.ozon.dev/Woofka/movie-review-system/internal/pkg/bot/command"
 )
 
-type CmdHandler func(string) string
-
-type Commander struct {
-	bot    *tgbotapi.BotAPI
-	routes map[string]CmdHandler
+type Interface interface {
+	Run() error
+	RegisterHandler(cmd commandPkg.Interface)
 }
 
-func Init(apiToken string, debug bool) (*Commander, error) {
+func MustNew(apiToken string, debug bool) Interface {
 	bot, err := tgbotapi.NewBotAPI(apiToken)
 	if err != nil {
-		return nil, errors.Wrap(err, "init tgbot")
+		log.Panic(errors.Wrap(err, "init tgbot"))
 	}
 
 	bot.Debug = debug
 	log.Printf("Authorized on account %s", bot.Self.UserName)
 
-	commander := Commander{
+	return &commander{
 		bot:    bot,
-		routes: make(map[string]CmdHandler),
+		routes: make(map[string]commandPkg.Interface),
 	}
-
-	return &commander, nil
 }
 
-func (c *Commander) RegisterHandler(cmd string, handler CmdHandler) {
-	c.routes[cmd] = handler
+type commander struct {
+	bot    *tgbotapi.BotAPI
+	routes map[string]commandPkg.Interface
 }
 
-func (c *Commander) Run() error {
+// RegisterHandler - not thread-safe
+func (c *commander) RegisterHandler(cmd commandPkg.Interface) {
+	c.routes[cmd.Name()] = cmd
+}
+
+func (c *commander) Run() error {
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60
 	updates := c.bot.GetUpdatesChan(u)
@@ -48,9 +51,9 @@ func (c *Commander) Run() error {
 
 		msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
 		if update.Message.IsCommand() {
-			cmd := update.Message.Command()
-			if h, ok := c.routes[cmd]; ok {
-				msg.Text = h(update.Message.CommandArguments())
+			cmdName := update.Message.Command()
+			if cmd, ok := c.routes[cmdName]; ok {
+				msg.Text = cmd.Process(update.Message.CommandArguments())
 				msg.ParseMode = "markdown"
 			} else {
 				msg.Text = "Unknown command. Use /help to see available commands."
