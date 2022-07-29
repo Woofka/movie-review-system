@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/pkg/errors"
 	commandPkg "gitlab.ozon.dev/Woofka/movie-review-system/internal/pkg/bot/command"
 	reviewPkg "gitlab.ozon.dev/Woofka/movie-review-system/internal/pkg/core/review"
 	"gitlab.ozon.dev/Woofka/movie-review-system/internal/pkg/core/review/models"
@@ -50,8 +51,9 @@ func (c *command) Process(argsString string) string {
 		Rating:     uint8(rating),
 	})
 	if err != nil {
-		// if errors.Is(err, reviewPkg.ErrValidation) { return "invalid args" }
-		// TODO: error handling
+		if errors.Is(err, reviewPkg.ErrValidation) {
+			return err.Error()
+		}
 		return "internal error"
 	}
 

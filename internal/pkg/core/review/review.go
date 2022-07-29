@@ -1,8 +1,6 @@
 package review
 
 import (
-	"fmt"
-
 	"github.com/pkg/errors"
 	cachePkg "gitlab.ozon.dev/Woofka/movie-review-system/internal/pkg/core/review/cache"
 	localCachePkg "gitlab.ozon.dev/Woofka/movie-review-system/internal/pkg/core/review/cache/local"
@@ -50,7 +48,7 @@ func (c *core) Create(review models.Review) error {
 	}
 
 	if review.Rating > maxRating {
-		return fmt.Errorf("invalid rating value: %d. Should be 0..10", review.Rating)
+		return errors.Wrapf(ErrValidation, "invalid rating value: %d. Should be 0..10", review.Rating)
 	}
 
 	return c.cache.Add(review)
@@ -70,7 +68,7 @@ func (c *core) Update(review models.Review) error {
 	}
 
 	if review.Rating > maxRating {
-		return fmt.Errorf("invalid rating value: %d. Should be 0..10", review.Rating)
+		return errors.Wrapf(ErrValidation, "invalid rating value: %d. Should be 0..10", review.Rating)
 	}
 
 	return c.cache.Update(review)

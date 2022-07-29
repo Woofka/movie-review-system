@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/pkg/errors"
 	commandPkg "gitlab.ozon.dev/Woofka/movie-review-system/internal/pkg/bot/command"
 	reviewPkg "gitlab.ozon.dev/Woofka/movie-review-system/internal/pkg/core/review"
+	cachePkg "gitlab.ozon.dev/Woofka/movie-review-system/internal/pkg/core/review/cache"
 )
 
 func New(review reviewPkg.Interface) commandPkg.Interface {
@@ -44,8 +46,12 @@ func (c *command) Process(argsString string) string {
 
 	review, err := c.review.Get(uint(id))
 	if err != nil {
-		// if errors.Is(err, reviewPkg.ErrValidation) { return "invalid args" }
-		// TODO: error handling
+		if errors.Is(err, reviewPkg.ErrValidation) {
+			return err.Error()
+		}
+		if errors.Is(err, cachePkg.ErrReviewNotExists) {
+			return "Review does not exist"
+		}
 		return "internal error"
 	}
 

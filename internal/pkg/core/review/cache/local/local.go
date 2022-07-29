@@ -1,9 +1,9 @@
 package local
 
 import (
-	"fmt"
 	"sort"
 
+	"github.com/pkg/errors"
 	cachePkg "gitlab.ozon.dev/Woofka/movie-review-system/internal/pkg/core/review/cache"
 	"gitlab.ozon.dev/Woofka/movie-review-system/internal/pkg/core/review/models"
 )
@@ -15,7 +15,6 @@ func New() cachePkg.Interface {
 	}
 }
 
-// TODO: rework error msgs?
 type cache struct {
 	data   map[uint]models.Review
 	lastId uint
@@ -40,14 +39,14 @@ func (c *cache) Add(review models.Review) error {
 func (c *cache) Get(id uint) (models.Review, error) {
 	review, ok := c.data[id]
 	if !ok {
-		return models.Review{}, fmt.Errorf("review with id %d does not exists", id)
+		return models.Review{}, errors.Wrapf(cachePkg.ErrReviewNotExists, "review with id %d does not exists", id)
 	}
 	return review, nil
 }
 
 func (c *cache) Update(review models.Review) error {
 	if _, ok := c.data[review.Id]; !ok {
-		return fmt.Errorf("review with id %d does not exists", review.Id)
+		return errors.Wrapf(cachePkg.ErrReviewNotExists, "review with id %d does not exists", review.Id)
 	}
 	c.data[review.Id] = review
 	return nil
@@ -55,7 +54,7 @@ func (c *cache) Update(review models.Review) error {
 
 func (c *cache) Delete(id uint) error {
 	if _, ok := c.data[id]; !ok {
-		return fmt.Errorf("review with id %d does not exists", id)
+		return errors.Wrapf(cachePkg.ErrReviewNotExists, "review with id %d does not exists", id)
 	}
 	delete(c.data, id)
 	return nil
