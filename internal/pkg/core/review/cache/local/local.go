@@ -2,6 +2,7 @@ package local
 
 import (
 	"sort"
+	"sync"
 
 	"github.com/pkg/errors"
 	cachePkg "gitlab.ozon.dev/Woofka/movie-review-system/internal/pkg/core/review/cache"
@@ -10,17 +11,22 @@ import (
 
 func New() cachePkg.Interface {
 	return &cache{
+		mu:     sync.RWMutex{},
 		data:   map[uint]models.Review{},
 		lastId: uint(0),
 	}
 }
 
 type cache struct {
+	mu     sync.RWMutex
 	data   map[uint]models.Review
 	lastId uint
 }
 
 func (c *cache) List() []models.Review {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+
 	result := make([]models.Review, 0, len(c.data))
 	for _, v := range c.data {
 		result = append(result, v)
@@ -30,6 +36,9 @@ func (c *cache) List() []models.Review {
 }
 
 func (c *cache) Add(review models.Review) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
 	c.lastId++
 	review.Id = c.lastId
 	c.data[review.Id] = review
@@ -37,6 +46,9 @@ func (c *cache) Add(review models.Review) error {
 }
 
 func (c *cache) Get(id uint) (models.Review, error) {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+
 	review, ok := c.data[id]
 	if !ok {
 		return models.Review{}, errors.Wrapf(cachePkg.ErrReviewNotExists, "review with id %d does not exists", id)
@@ -45,6 +57,9 @@ func (c *cache) Get(id uint) (models.Review, error) {
 }
 
 func (c *cache) Update(review models.Review) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
 	if _, ok := c.data[review.Id]; !ok {
 		return errors.Wrapf(cachePkg.ErrReviewNotExists, "review with id %d does not exists", review.Id)
 	}
@@ -53,6 +68,9 @@ func (c *cache) Update(review models.Review) error {
 }
 
 func (c *cache) Delete(id uint) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
 	if _, ok := c.data[id]; !ok {
 		return errors.Wrapf(cachePkg.ErrReviewNotExists, "review with id %d does not exists", id)
 	}

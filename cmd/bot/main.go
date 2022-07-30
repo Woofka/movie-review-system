@@ -39,6 +39,7 @@ func main() {
 		commandList := cmdListPkg.New(review)
 		bot.RegisterHandler(commandList)
 
+		// TODO: update descriptions
 		commandHelp := cmdHelpPkg.New(map[string]string{
 			commandAdd.Name():    commandAdd.Description(),
 			commandGet.Name():    commandGet.Description(),
