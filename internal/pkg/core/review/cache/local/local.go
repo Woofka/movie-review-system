@@ -9,11 +9,14 @@ import (
 	"gitlab.ozon.dev/Woofka/movie-review-system/internal/pkg/core/review/models"
 )
 
+const pollSize = 10
+
 func New() cachePkg.Interface {
 	return &cache{
 		mu:     sync.RWMutex{},
 		data:   map[uint]models.Review{},
 		lastId: uint(0),
+		poolCh: make(chan struct{}, pollSize),
 	}
 }
 
@@ -21,11 +24,16 @@ type cache struct {
 	mu     sync.RWMutex
 	data   map[uint]models.Review
 	lastId uint
+	poolCh chan struct{}
 }
 
 func (c *cache) List() []models.Review {
+	c.poolCh <- struct{}{}
 	c.mu.RLock()
-	defer c.mu.RUnlock()
+	defer func() {
+		c.mu.RUnlock()
+		<-c.poolCh
+	}()
 
 	result := make([]models.Review, 0, len(c.data))
 	for _, v := range c.data {
@@ -36,8 +44,12 @@ func (c *cache) List() []models.Review {
 }
 
 func (c *cache) Add(review models.Review) error {
+	c.poolCh <- struct{}{}
 	c.mu.Lock()
-	defer c.mu.Unlock()
+	defer func() {
+		c.mu.Unlock()
+		<-c.poolCh
+	}()
 
 	c.lastId++
 	review.Id = c.lastId
@@ -46,8 +58,12 @@ func (c *cache) Add(review models.Review) error {
 }
 
 func (c *cache) Get(id uint) (models.Review, error) {
+	c.poolCh <- struct{}{}
 	c.mu.RLock()
-	defer c.mu.RUnlock()
+	defer func() {
+		c.mu.RUnlock()
+		<-c.poolCh
+	}()
 
 	review, ok := c.data[id]
 	if !ok {
@@ -57,8 +73,12 @@ func (c *cache) Get(id uint) (models.Review, error) {
 }
 
 func (c *cache) Update(review models.Review) error {
+	c.poolCh <- struct{}{}
 	c.mu.Lock()
-	defer c.mu.Unlock()
+	defer func() {
+		c.mu.Unlock()
+		<-c.poolCh
+	}()
 
 	if _, ok := c.data[review.Id]; !ok {
 		return errors.Wrapf(cachePkg.ErrReviewNotExists, "review with id %d does not exists", review.Id)
@@ -68,8 +88,12 @@ func (c *cache) Update(review models.Review) error {
 }
 
 func (c *cache) Delete(id uint) error {
+	c.poolCh <- struct{}{}
 	c.mu.Lock()
-	defer c.mu.Unlock()
+	defer func() {
+		c.mu.Unlock()
+		<-c.poolCh
+	}()
 
 	if _, ok := c.data[id]; !ok {
 		return errors.Wrapf(cachePkg.ErrReviewNotExists, "review with id %d does not exists", id)
