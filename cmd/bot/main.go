@@ -50,6 +50,11 @@ func main() {
 		bot.RegisterHandler(commandHelp)
 	}
 
+	go runBot(bot)
+	runGRPCServer(review)
+}
+
+func runBot(bot botPkg.Interface) {
 	err := bot.Run()
 	if err != nil {
 		log.Panic(err)
