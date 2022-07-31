@@ -25,7 +25,7 @@ func (c *command) Name() string {
 }
 
 func (c *command) Description() string {
-	return "show review"
+	return "show review. Usage: `/get <id>`."
 }
 
 func (c *command) Process(argsString string) string {

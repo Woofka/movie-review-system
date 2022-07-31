@@ -25,7 +25,7 @@ func (c *command) Name() string {
 }
 
 func (c *command) Description() string {
-	return "show this message"
+	return "show this message."
 }
 
 func (c *command) Process(_ string) string {

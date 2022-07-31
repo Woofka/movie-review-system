@@ -25,7 +25,7 @@ func (c *command) Name() string {
 }
 
 func (c *command) Description() string {
-	return "create review"
+	return "create review. Usage: `/add <reviewer> \"<movie title>\" \"<text of review>\" <rating>`."
 }
 
 func (c *command) Process(argsString string) string {

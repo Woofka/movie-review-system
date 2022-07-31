@@ -26,7 +26,7 @@ func (c *command) Name() string {
 }
 
 func (c *command) Description() string {
-	return "update review"
+	return "update review. Usage: `/update <id> <reviewer> \"<movie title>\" \"<text of review>\" <rating>`."
 }
 
 func (c *command) Process(argsString string) string {

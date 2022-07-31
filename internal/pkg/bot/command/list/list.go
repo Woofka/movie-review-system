@@ -22,7 +22,7 @@ func (c *command) Name() string {
 }
 
 func (c *command) Description() string {
-	return "show all reviews"
+	return "show all reviews."
 }
 
 func (c *command) Process(_ string) string {

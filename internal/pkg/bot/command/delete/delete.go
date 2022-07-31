@@ -25,7 +25,7 @@ func (c *command) Name() string {
 }
 
 func (c *command) Description() string {
-	return "delete review"
+	return "delete review. Usage: `/delete <id>`."
 }
 
 func (c *command) Process(argsString string) string {
