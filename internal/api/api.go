@@ -25,10 +25,10 @@ type implementation struct {
 
 func (i *implementation) CreateReview(_ context.Context, req *pb.CreateReviewRequest) (*pb.CreateReviewResponse, error) {
 	err := i.review.Create(models.Review{
-		Reviewer:   req.GetReviewer(),
-		MovieTitle: req.GetMovieTitle(),
-		Text:       req.GetText(),
-		Rating:     uint8(req.GetRating()),
+		Reviewer:   req.Review.GetReviewer(),
+		MovieTitle: req.Review.GetMovieTitle(),
+		Text:       req.Review.GetText(),
+		Rating:     uint8(req.Review.GetRating()),
 	})
 	if err != nil {
 		if errors.Is(err, reviewPkg.ErrValidation) {
@@ -62,11 +62,11 @@ func (i *implementation) GetReview(_ context.Context, req *pb.GetReviewRequest) 
 
 func (i *implementation) UpdateReview(_ context.Context, req *pb.UpdateReviewRequest) (*pb.UpdateReviewResponse, error) {
 	err := i.review.Update(models.Review{
-		Id:         uint(req.GetId()),
-		Reviewer:   req.GetReviewer(),
-		MovieTitle: req.GetMovieTitle(),
-		Text:       req.GetText(),
-		Rating:     uint8(req.GetRating()),
+		Id:         uint(req.Review.GetId()),
+		Reviewer:   req.Review.GetReviewer(),
+		MovieTitle: req.Review.GetMovieTitle(),
+		Text:       req.Review.GetText(),
+		Rating:     uint8(req.Review.GetRating()),
 	})
 	if err != nil {
 		if errors.Is(err, reviewPkg.ErrValidation) {

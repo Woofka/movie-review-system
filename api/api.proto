@@ -19,10 +19,7 @@ service Admin {
 // ---------------------------------------------------------------------------------------------------------------------
 
 message CreateReviewRequest {
-  string reviewer   = 1;
-  string movieTitle = 2;
-  string text       = 3;
-  uint32 rating     = 4;
+  Review review = 1;
 }
 message CreateReviewResponse {}
 
@@ -42,11 +39,7 @@ message GetReviewResponse {
 // ---------------------------------------------------------------------------------------------------------------------
 
 message UpdateReviewRequest {
-  uint64 id         = 1;
-  string reviewer   = 2;
-  string movieTitle = 3;
-  string text       = 4;
-  uint32 rating     = 5;
+  Review review = 1;
 }
 message UpdateReviewResponse {}
 
@@ -73,9 +66,9 @@ message ListReviewResponse {
 // ---------------------------------------------------------------------------------------------------------------------
 
 message Review {
-  uint64 id         = 1;
-  string reviewer   = 2;
-  string movieTitle = 3;
-  string text       = 4;
-  uint32 rating     = 5;
+  string reviewer   = 1;
+  string movieTitle = 2;
+  string text       = 3;
+  uint32 rating     = 4;
+  uint64 id         = 5;
 }
