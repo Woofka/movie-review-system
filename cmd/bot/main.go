@@ -16,45 +16,41 @@ import (
 
 func main() {
 	var review reviewPkg.Interface
-	{
-		review = reviewPkg.New()
-	}
+	review = reviewPkg.New()
 
 	var bot botPkg.Interface
-	{
-		bot, err := botPkg.New(config.ApiToken, false)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		commandAdd := cmdAddPkg.New(review)
-		bot.RegisterHandler(commandAdd)
-
-		commandGet := cmdGetPkg.New(review)
-		bot.RegisterHandler(commandGet)
-
-		commandUpdate := cmdUpdatePkg.New(review)
-		bot.RegisterHandler(commandUpdate)
-
-		commandDelete := cmdDeletePkg.New(review)
-		bot.RegisterHandler(commandDelete)
-
-		commandList := cmdListPkg.New(review)
-		bot.RegisterHandler(commandList)
-
-		// TODO: update descriptions
-		commandHelp := cmdHelpPkg.New(map[string]string{
-			commandAdd.Name():    commandAdd.Description(),
-			commandGet.Name():    commandGet.Description(),
-			commandUpdate.Name(): commandUpdate.Description(),
-			commandDelete.Name(): commandDelete.Description(),
-			commandList.Name():   commandList.Description(),
-		})
-		bot.RegisterHandler(commandHelp)
+	bot, err := botPkg.New(config.ApiToken, false)
+	if err != nil {
+		log.Fatal(err)
 	}
 
+	commandAdd := cmdAddPkg.New(review)
+	bot.RegisterHandler(commandAdd)
+
+	commandGet := cmdGetPkg.New(review)
+	bot.RegisterHandler(commandGet)
+
+	commandUpdate := cmdUpdatePkg.New(review)
+	bot.RegisterHandler(commandUpdate)
+
+	commandDelete := cmdDeletePkg.New(review)
+	bot.RegisterHandler(commandDelete)
+
+	commandList := cmdListPkg.New(review)
+	bot.RegisterHandler(commandList)
+
+	// TODO: update descriptions
+	commandHelp := cmdHelpPkg.New(map[string]string{
+		commandAdd.Name():    commandAdd.Description(),
+		commandGet.Name():    commandGet.Description(),
+		commandUpdate.Name(): commandUpdate.Description(),
+		commandDelete.Name(): commandDelete.Description(),
+		commandList.Name():   commandList.Description(),
+	})
+	bot.RegisterHandler(commandHelp)
+
 	go runBot(bot)
-	err := runGRPCServer(review)
+	err = runGRPCServer(review)
 	if err != nil {
 		log.Fatal(err)
 	}
