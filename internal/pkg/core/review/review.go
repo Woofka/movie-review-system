@@ -17,11 +17,11 @@ const (
 var ErrValidation = errors.New("invalid data")
 
 type Interface interface {
-	Create(review models.Review) error
-	Update(review models.Review) error
+	Create(review *models.Review) error
+	Update(review *models.Review) error
 	Delete(id uint) error
-	List() []models.Review
-	Get(id uint) (models.Review, error)
+	List() []*models.Review
+	Get(id uint) (*models.Review, error)
 }
 
 func New() Interface {
@@ -34,7 +34,7 @@ type core struct {
 	cache cachePkg.Interface
 }
 
-func (c *core) Create(review models.Review) error {
+func (c *core) Create(review *models.Review) error {
 	if review.Reviewer == "" || len(review.Reviewer) > maxReviewerLen {
 		return errors.Wrapf(ErrValidation, "invalid reviewer length: %d. Should be 1..32", len(review.Reviewer))
 	}
@@ -54,7 +54,7 @@ func (c *core) Create(review models.Review) error {
 	return c.cache.Add(review)
 }
 
-func (c *core) Update(review models.Review) error {
+func (c *core) Update(review *models.Review) error {
 	if review.Reviewer == "" || len(review.Reviewer) > maxReviewerLen {
 		return errors.Wrapf(ErrValidation, "invalid reviewer length: %d. Should be 1..32", len(review.Reviewer))
 	}
@@ -78,10 +78,10 @@ func (c *core) Delete(id uint) error {
 	return c.cache.Delete(id)
 }
 
-func (c *core) Get(id uint) (models.Review, error) {
+func (c *core) Get(id uint) (*models.Review, error) {
 	return c.cache.Get(id)
 }
 
-func (c *core) List() []models.Review {
+func (c *core) List() []*models.Review {
 	return c.cache.List()
 }

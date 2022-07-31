@@ -51,7 +51,7 @@ func (c *command) Process(argsString string) string {
 		return "4th argument should be integer."
 	}
 
-	err = c.review.Update(models.Review{
+	err = c.review.Update(&models.Review{
 		Id:         uint(id),
 		Reviewer:   args[1],
 		MovieTitle: args[2],

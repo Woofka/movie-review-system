@@ -44,7 +44,7 @@ func (c *command) Process(argsString string) string {
 		return "4th argument should be integer."
 	}
 
-	err = c.review.Create(models.Review{
+	err = c.review.Create(&models.Review{
 		Reviewer:   args[0],
 		MovieTitle: args[1],
 		Text:       args[2],

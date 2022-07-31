@@ -14,7 +14,7 @@ const pollSize = 10
 func New() cachePkg.Interface {
 	return &cache{
 		mu:     sync.RWMutex{},
-		data:   map[uint]models.Review{},
+		data:   map[uint]*models.Review{},
 		lastId: uint(0),
 		poolCh: make(chan struct{}, pollSize),
 	}
@@ -22,12 +22,12 @@ func New() cachePkg.Interface {
 
 type cache struct {
 	mu     sync.RWMutex
-	data   map[uint]models.Review
+	data   map[uint]*models.Review
 	lastId uint
 	poolCh chan struct{}
 }
 
-func (c *cache) List() []models.Review {
+func (c *cache) List() []*models.Review {
 	c.poolCh <- struct{}{}
 	c.mu.RLock()
 	defer func() {
@@ -35,7 +35,7 @@ func (c *cache) List() []models.Review {
 		<-c.poolCh
 	}()
 
-	result := make([]models.Review, 0, len(c.data))
+	result := make([]*models.Review, 0, len(c.data))
 	for _, v := range c.data {
 		result = append(result, v)
 	}
@@ -43,7 +43,7 @@ func (c *cache) List() []models.Review {
 	return result
 }
 
-func (c *cache) Add(review models.Review) error {
+func (c *cache) Add(review *models.Review) error {
 	c.poolCh <- struct{}{}
 	c.mu.Lock()
 	defer func() {
@@ -57,7 +57,7 @@ func (c *cache) Add(review models.Review) error {
 	return nil
 }
 
-func (c *cache) Get(id uint) (models.Review, error) {
+func (c *cache) Get(id uint) (*models.Review, error) {
 	c.poolCh <- struct{}{}
 	c.mu.RLock()
 	defer func() {
@@ -67,12 +67,12 @@ func (c *cache) Get(id uint) (models.Review, error) {
 
 	review, ok := c.data[id]
 	if !ok {
-		return models.Review{}, errors.Wrapf(cachePkg.ErrReviewNotExists, "review with id %d does not exists", id)
+		return &models.Review{}, errors.Wrapf(cachePkg.ErrReviewNotExists, "review with id %d does not exists", id)
 	}
 	return review, nil
 }
 
-func (c *cache) Update(review models.Review) error {
+func (c *cache) Update(review *models.Review) error {
 	c.poolCh <- struct{}{}
 	c.mu.Lock()
 	defer func() {

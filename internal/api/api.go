@@ -24,7 +24,7 @@ type implementation struct {
 }
 
 func (i *implementation) CreateReview(_ context.Context, req *pb.CreateReviewRequest) (*pb.CreateReviewResponse, error) {
-	err := i.review.Create(models.Review{
+	err := i.review.Create(&models.Review{
 		Reviewer:   req.Review.GetReviewer(),
 		MovieTitle: req.Review.GetMovieTitle(),
 		Text:       req.Review.GetText(),
@@ -61,7 +61,7 @@ func (i *implementation) GetReview(_ context.Context, req *pb.GetReviewRequest) 
 }
 
 func (i *implementation) UpdateReview(_ context.Context, req *pb.UpdateReviewRequest) (*pb.UpdateReviewResponse, error) {
-	err := i.review.Update(models.Review{
+	err := i.review.Update(&models.Review{
 		Id:         uint(req.Review.GetId()),
 		Reviewer:   req.Review.GetReviewer(),
 		MovieTitle: req.Review.GetMovieTitle(),
