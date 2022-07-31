@@ -22,7 +22,10 @@ func main() {
 
 	var bot botPkg.Interface
 	{
-		bot = botPkg.MustNew(config.ApiToken, false)
+		bot, err := botPkg.New(config.ApiToken, false)
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		commandAdd := cmdAddPkg.New(review)
 		bot.RegisterHandler(commandAdd)
@@ -51,12 +54,15 @@ func main() {
 	}
 
 	go runBot(bot)
-	runGRPCServer(review)
+	err := runGRPCServer(review)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func runBot(bot botPkg.Interface) {
 	err := bot.Run()
 	if err != nil {
-		log.Panic(err)
+		log.Fatal(err)
 	}
 }

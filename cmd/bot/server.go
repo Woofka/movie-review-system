@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/pkg/errors"
 	"net"
 
 	apiPkg "gitlab.ozon.dev/Woofka/movie-review-system/internal/api"
@@ -9,16 +10,18 @@ import (
 	"google.golang.org/grpc"
 )
 
-func runGRPCServer(review reviewPkg.Interface) {
+func runGRPCServer(review reviewPkg.Interface) error {
 	listener, err := net.Listen("tcp", ":8081")
 	if err != nil {
-		panic(err)
+		return errors.Wrap(err, "GRPC server listener error")
 	}
 
 	grpcServer := grpc.NewServer()
 	pb.RegisterAdminServer(grpcServer, apiPkg.New(review))
 
 	if err = grpcServer.Serve(listener); err != nil {
-		panic(err)
+		return errors.Wrap(err, "GRPC server error")
 	}
+
+	return nil
 }

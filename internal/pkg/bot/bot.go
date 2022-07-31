@@ -13,10 +13,10 @@ type Interface interface {
 	RegisterHandler(cmd commandPkg.Interface)
 }
 
-func MustNew(apiToken string, debug bool) Interface {
+func New(apiToken string, debug bool) (Interface, error) {
 	bot, err := tgbotapi.NewBotAPI(apiToken)
 	if err != nil {
-		log.Panic(errors.Wrap(err, "init tgbot"))
+		return nil, errors.Wrap(err, "init tgbot")
 	}
 
 	bot.Debug = debug
@@ -25,7 +25,7 @@ func MustNew(apiToken string, debug bool) Interface {
 	return &commander{
 		bot:    bot,
 		routes: make(map[string]commandPkg.Interface),
-	}
+	}, nil
 }
 
 type commander struct {
