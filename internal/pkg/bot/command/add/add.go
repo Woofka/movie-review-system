@@ -3,6 +3,7 @@ package add
 import (
 	"context"
 	"fmt"
+	"log"
 	"strconv"
 
 	"github.com/pkg/errors"
@@ -55,6 +56,7 @@ func (c *command) Process(ctx context.Context, argsString string) string {
 		if errors.Is(err, reviewPkg.ErrValidation) {
 			return err.Error()
 		}
+		log.Print(err)
 		return "internal error"
 	}
 

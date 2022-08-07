@@ -2,6 +2,7 @@ package list
 
 import (
 	"context"
+	"log"
 	"strings"
 
 	commandPkg "gitlab.ozon.dev/Woofka/movie-review-system/internal/pkg/bot/command"
@@ -27,7 +28,11 @@ func (c *command) Description() string {
 }
 
 func (c *command) Process(ctx context.Context, _ string) string {
-	reviews := c.review.List(ctx)
+	reviews, err := c.review.List(ctx)
+	if err != nil {
+		log.Print(err)
+		return "internal error"
+	}
 
 	if len(reviews) == 0 {
 		return "No reviews yet"

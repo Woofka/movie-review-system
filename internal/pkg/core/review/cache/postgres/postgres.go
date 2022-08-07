@@ -3,7 +3,10 @@ package postgres
 import (
 	"context"
 
+	"github.com/georgysavva/scany/pgxscan"
+	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
+	"github.com/pkg/errors"
 	cachePkg "gitlab.ozon.dev/Woofka/movie-review-system/internal/pkg/core/review/cache"
 	"gitlab.ozon.dev/Woofka/movie-review-system/internal/pkg/core/review/models"
 )
@@ -16,22 +19,122 @@ type Repository struct {
 	pool *pgxpool.Pool
 }
 
-func (r *Repository) List(ctx context.Context) []*models.Review {
+func (r *Repository) List(ctx context.Context) ([]*models.Review, error) {
+	// TODO: paginator
+	query := "SELECT id, reviewer, movie_title, text, rating FROM public.reviews"
+	rows, err := r.pool.Query(ctx, query)
+	if err != nil {
+		return nil, errors.Wrap(err, "postgres.List")
+	}
+	defer rows.Close()
+
+	var reviews []*models.Review
+	err = pgxscan.ScanAll(&reviews, rows)
+	if err != nil {
+		return nil, errors.Wrap(err, "postgres.List")
+	}
+
+	return reviews, nil
+}
+
+func (r *Repository) addUser(ctx context.Context, username string) error {
+	var tmp string
+
+	query := "SELECT username FROM public.users where username = $1"
+	row := r.pool.QueryRow(ctx, query, username)
+	err := row.Scan(&tmp)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			query = "INSERT INTO public.users (username) values ($1)"
+			_, err := r.pool.Exec(ctx, query, username)
+			if err != nil {
+				return errors.Wrap(err, "postgres.addUser")
+			}
+		}
+		return errors.Wrap(err, "postgres.addUser")
+	}
+	return nil
+}
+
+func (r *Repository) addMovie(ctx context.Context, movieTitle string) error {
+	var tmp string
+
+	query := "SELECT title FROM public.movies where title = $1"
+	row := r.pool.QueryRow(ctx, query, movieTitle)
+	err := row.Scan(&tmp)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			query = "INSERT INTO public.movies (title) values ($1)"
+			_, err := r.pool.Exec(ctx, query, movieTitle)
+			if err != nil {
+				return errors.Wrap(err, "postgres.addMovie")
+			}
+		}
+		return errors.Wrap(err, "postgres.addMovie")
+	}
 	return nil
 }
 
 func (r *Repository) Add(ctx context.Context, review *models.Review) error {
+	err := r.addUser(ctx, review.Reviewer)
+	if err != nil {
+		return errors.Wrap(err, "postgres.Add")
+	}
+
+	err = r.addMovie(ctx, review.MovieTitle)
+	if err != nil {
+		return errors.Wrap(err, "postgres.Add")
+	}
+
+	query := "INSERT INTO public.reviews (reviewer, movie_title, text, rating) " +
+		"values ($1, $2, $3, $4) RETURNING id"
+
+	row := r.pool.QueryRow(ctx, query, review.Reviewer, review.MovieTitle, review.Text, int(review.Rating))
+	var reviewId int
+	err = row.Scan(&reviewId)
+	if err != nil {
+		return errors.Wrap(err, "postgres.Add")
+	}
+
+	review.Id = uint(reviewId)
 	return nil
 }
 
 func (r *Repository) Get(ctx context.Context, id uint) (*models.Review, error) {
-	return nil, nil
+	query := "SELECT id, reviewer, movie_title, text, rating FROM public.reviews WHERE id = $1"
+	row := r.pool.QueryRow(ctx, query, id)
+	review := models.Review{}
+	err := row.Scan(&review.Id, &review.Reviewer, &review.MovieTitle, &review.Text, &review.Rating)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, errors.Wrapf(cachePkg.ErrReviewNotExists, "review with id %d does not exists", id)
+		}
+		return nil, errors.Wrap(err, "postgres.Get")
+	}
+
+	return &review, nil
 }
 
 func (r *Repository) Update(ctx context.Context, review *models.Review) error {
+	query := "UPDATE public.reviews SET text = $1, rating = $2 WHERE id = $3"
+	result, err := r.pool.Exec(ctx, query, review.Text, review.Rating, review.Id)
+	if err != nil {
+		return errors.Wrap(err, "postgres.Update")
+	}
+	if result.RowsAffected() == 0 {
+		return errors.Wrapf(cachePkg.ErrReviewNotExists, "review with id %d does not exists", review.Id)
+	}
 	return nil
 }
 
 func (r *Repository) Delete(ctx context.Context, id uint) error {
+	query := "DELETE FROM public.reviews WHERE id = $1"
+	result, err := r.pool.Exec(ctx, query, id)
+	if err != nil {
+		return errors.Wrap(err, "postgres.Delete")
+	}
+	if result.RowsAffected() == 0 {
+		return errors.Wrapf(cachePkg.ErrReviewNotExists, "review with id %d does not exists", id)
+	}
 	return nil
 }

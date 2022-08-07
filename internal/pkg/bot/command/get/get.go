@@ -3,6 +3,7 @@ package get
 import (
 	"context"
 	"fmt"
+	"log"
 	"strconv"
 
 	"github.com/pkg/errors"
@@ -53,6 +54,7 @@ func (c *command) Process(ctx context.Context, argsString string) string {
 		if errors.Is(err, cachePkg.ErrReviewNotExists) {
 			return "Review does not exist"
 		}
+		log.Print(err)
 		return "internal error"
 	}
 

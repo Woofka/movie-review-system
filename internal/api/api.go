@@ -91,7 +91,10 @@ func (i *implementation) DeleteReview(ctx context.Context, req *pb.DeleteReviewR
 }
 
 func (i *implementation) ListReview(ctx context.Context, _ *pb.ListReviewRequest) (*pb.ListReviewResponse, error) {
-	reviews := i.review.List(ctx)
+	reviews, err := i.review.List(ctx)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
 
 	result := make([]*pb.Review, 0, len(reviews))
 	for _, review := range reviews {
