@@ -1,6 +1,7 @@
 package help
 
 import (
+	"context"
 	"fmt"
 
 	commandPkg "gitlab.ozon.dev/Woofka/movie-review-system/internal/pkg/bot/command"
@@ -28,7 +29,7 @@ func (c *command) Description() string {
 	return "show this message."
 }
 
-func (c *command) Process(_ string) string {
+func (c *command) Process(_ context.Context, _ string) string {
 	result := fmt.Sprintf("/%s - %s\n", c.Name(), c.Description())
 	for cmd, description := range c.extended {
 		result += fmt.Sprintf("/%s - %s\n", cmd, description)

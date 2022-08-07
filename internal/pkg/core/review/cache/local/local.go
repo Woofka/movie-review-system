@@ -1,6 +1,7 @@
 package local
 
 import (
+	"context"
 	"sort"
 	"sync"
 
@@ -27,7 +28,7 @@ type cache struct {
 	poolCh chan struct{}
 }
 
-func (c *cache) List() []*models.Review {
+func (c *cache) List(_ context.Context) []*models.Review {
 	c.poolCh <- struct{}{}
 	c.mu.RLock()
 	defer func() {
@@ -43,7 +44,7 @@ func (c *cache) List() []*models.Review {
 	return result
 }
 
-func (c *cache) Add(review *models.Review) error {
+func (c *cache) Add(_ context.Context, review *models.Review) error {
 	c.poolCh <- struct{}{}
 	c.mu.Lock()
 	defer func() {
@@ -57,7 +58,7 @@ func (c *cache) Add(review *models.Review) error {
 	return nil
 }
 
-func (c *cache) Get(id uint) (*models.Review, error) {
+func (c *cache) Get(_ context.Context, id uint) (*models.Review, error) {
 	c.poolCh <- struct{}{}
 	c.mu.RLock()
 	defer func() {
@@ -72,7 +73,7 @@ func (c *cache) Get(id uint) (*models.Review, error) {
 	return review, nil
 }
 
-func (c *cache) Update(review *models.Review) error {
+func (c *cache) Update(_ context.Context, review *models.Review) error {
 	c.poolCh <- struct{}{}
 	c.mu.Lock()
 	defer func() {
@@ -87,7 +88,7 @@ func (c *cache) Update(review *models.Review) error {
 	return nil
 }
 
-func (c *cache) Delete(id uint) error {
+func (c *cache) Delete(_ context.Context, id uint) error {
 	c.poolCh <- struct{}{}
 	c.mu.Lock()
 	defer func() {

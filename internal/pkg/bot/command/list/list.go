@@ -1,6 +1,7 @@
 package list
 
 import (
+	"context"
 	"strings"
 
 	commandPkg "gitlab.ozon.dev/Woofka/movie-review-system/internal/pkg/bot/command"
@@ -25,8 +26,8 @@ func (c *command) Description() string {
 	return "show all reviews."
 }
 
-func (c *command) Process(_ string) string {
-	reviews := c.review.List()
+func (c *command) Process(ctx context.Context, _ string) string {
+	reviews := c.review.List(ctx)
 
 	if len(reviews) == 0 {
 		return "No reviews yet"

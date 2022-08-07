@@ -1,6 +1,7 @@
 package bot
 
 import (
+	"context"
 	"log"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -9,7 +10,7 @@ import (
 )
 
 type Interface interface {
-	Run() error
+	Run(ctx context.Context) error
 	RegisterHandler(cmd commandPkg.Interface)
 }
 
@@ -38,7 +39,7 @@ func (c *commander) RegisterHandler(cmd commandPkg.Interface) {
 	c.routes[cmd.Name()] = cmd
 }
 
-func (c *commander) Run() error {
+func (c *commander) Run(ctx context.Context) error {
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60
 	updates := c.bot.GetUpdatesChan(u)
@@ -53,7 +54,7 @@ func (c *commander) Run() error {
 		if update.Message.IsCommand() {
 			cmdName := update.Message.Command()
 			if cmd, ok := c.routes[cmdName]; ok {
-				msg.Text = cmd.Process(update.Message.CommandArguments())
+				msg.Text = cmd.Process(ctx, update.Message.CommandArguments())
 				msg.ParseMode = "markdown"
 			} else {
 				msg.Text = "Unknown command. Use /help to see available commands."

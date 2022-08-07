@@ -1,6 +1,7 @@
 package update
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 
@@ -29,7 +30,7 @@ func (c *command) Description() string {
 	return "update review. Usage: `/update <id> <reviewer> \"<movie title>\" \"<text of review>\" <rating>`."
 }
 
-func (c *command) Process(argsString string) string {
+func (c *command) Process(ctx context.Context, argsString string) string {
 	if len(argsString) == 0 {
 		return "No arguments were given. See /help for details."
 	}
@@ -51,7 +52,7 @@ func (c *command) Process(argsString string) string {
 		return "4th argument should be integer."
 	}
 
-	err = c.review.Update(&models.Review{
+	err = c.review.Update(ctx, &models.Review{
 		Id:         uint(id),
 		Reviewer:   args[1],
 		MovieTitle: args[2],

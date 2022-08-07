@@ -1,9 +1,10 @@
 package review
 
 import (
+	"context"
+
 	"github.com/pkg/errors"
 	cachePkg "gitlab.ozon.dev/Woofka/movie-review-system/internal/pkg/core/review/cache"
-	localCachePkg "gitlab.ozon.dev/Woofka/movie-review-system/internal/pkg/core/review/cache/local"
 	"gitlab.ozon.dev/Woofka/movie-review-system/internal/pkg/core/review/models"
 )
 
@@ -17,16 +18,16 @@ const (
 var ErrValidation = errors.New("invalid data")
 
 type Interface interface {
-	Create(review *models.Review) error
-	Update(review *models.Review) error
-	Delete(id uint) error
-	List() []*models.Review
-	Get(id uint) (*models.Review, error)
+	Create(ctx context.Context, review *models.Review) error
+	Update(ctx context.Context, review *models.Review) error
+	Delete(ctx context.Context, id uint) error
+	List(ctx context.Context) []*models.Review
+	Get(ctx context.Context, id uint) (*models.Review, error)
 }
 
-func New() Interface {
+func New(cache cachePkg.Interface) Interface {
 	return &core{
-		cache: localCachePkg.New(),
+		cache: cache,
 	}
 }
 
@@ -34,7 +35,7 @@ type core struct {
 	cache cachePkg.Interface
 }
 
-func (c *core) Create(review *models.Review) error {
+func (c *core) Create(ctx context.Context, review *models.Review) error {
 	if review.Reviewer == "" || len(review.Reviewer) > maxReviewerLen {
 		return errors.Wrapf(ErrValidation, "invalid reviewer length: %d. Should be 1..32", len(review.Reviewer))
 	}
@@ -51,10 +52,10 @@ func (c *core) Create(review *models.Review) error {
 		return errors.Wrapf(ErrValidation, "invalid rating value: %d. Should be 0..10", review.Rating)
 	}
 
-	return c.cache.Add(review)
+	return c.cache.Add(ctx, review)
 }
 
-func (c *core) Update(review *models.Review) error {
+func (c *core) Update(ctx context.Context, review *models.Review) error {
 	if review.Reviewer == "" || len(review.Reviewer) > maxReviewerLen {
 		return errors.Wrapf(ErrValidation, "invalid reviewer length: %d. Should be 1..32", len(review.Reviewer))
 	}
@@ -71,17 +72,17 @@ func (c *core) Update(review *models.Review) error {
 		return errors.Wrapf(ErrValidation, "invalid rating value: %d. Should be 0..10", review.Rating)
 	}
 
-	return c.cache.Update(review)
+	return c.cache.Update(ctx, review)
 }
 
-func (c *core) Delete(id uint) error {
-	return c.cache.Delete(id)
+func (c *core) Delete(ctx context.Context, id uint) error {
+	return c.cache.Delete(ctx, id)
 }
 
-func (c *core) Get(id uint) (*models.Review, error) {
-	return c.cache.Get(id)
+func (c *core) Get(ctx context.Context, id uint) (*models.Review, error) {
+	return c.cache.Get(ctx, id)
 }
 
-func (c *core) List() []*models.Review {
-	return c.cache.List()
+func (c *core) List(ctx context.Context) []*models.Review {
+	return c.cache.List(ctx)
 }
