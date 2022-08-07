@@ -56,7 +56,11 @@ message DeleteReviewResponse {}
 // CreateReview endpoint messages
 // ---------------------------------------------------------------------------------------------------------------------
 
-message ListReviewRequest {}
+message ListReviewRequest {
+  uint64 limit = 1;
+  uint64 offset = 2;
+  bool orderDesc = 3;
+}
 message ListReviewResponse {
   repeated Review reviews = 1;
 }

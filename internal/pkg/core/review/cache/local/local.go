@@ -28,7 +28,7 @@ type cache struct {
 	poolCh chan struct{}
 }
 
-func (c *cache) List(_ context.Context) ([]*models.Review, error) {
+func (c *cache) List(_ context.Context, limit, offset uint, orderDesc bool) ([]*models.Review, error) {
 	c.poolCh <- struct{}{}
 	c.mu.RLock()
 	defer func() {
@@ -40,8 +40,12 @@ func (c *cache) List(_ context.Context) ([]*models.Review, error) {
 	for _, v := range c.data {
 		result = append(result, v)
 	}
-	sort.Slice(result, func(i, j int) bool { return result[i].Id < result[j].Id })
-	return result, nil
+	if orderDesc {
+		sort.Slice(result, func(i, j int) bool { return result[i].Id > result[j].Id })
+	} else {
+		sort.Slice(result, func(i, j int) bool { return result[i].Id < result[j].Id })
+	}
+	return result[offset : offset+limit], nil
 }
 
 func (c *cache) Add(_ context.Context, review *models.Review) error {

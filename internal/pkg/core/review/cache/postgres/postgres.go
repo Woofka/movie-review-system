@@ -19,10 +19,13 @@ type Repository struct {
 	pool *pgxpool.Pool
 }
 
-func (r *Repository) List(ctx context.Context) ([]*models.Review, error) {
-	// TODO: paginator
-	query := "SELECT id, reviewer, movie_title, text, rating FROM public.reviews"
-	rows, err := r.pool.Query(ctx, query)
+func (r *Repository) List(ctx context.Context, limit, offset uint, orderDesc bool) ([]*models.Review, error) {
+	query := "SELECT id, reviewer, movie_title, text, rating FROM public.reviews ORDER BY ID "
+	if orderDesc {
+		query += " DESC "
+	}
+	query += "LIMIT $1 OFFSET $2"
+	rows, err := r.pool.Query(ctx, query, limit, offset)
 	if err != nil {
 		return nil, errors.Wrap(err, "postgres.List")
 	}

@@ -21,7 +21,7 @@ type Interface interface {
 	Create(ctx context.Context, review *models.Review) error
 	Update(ctx context.Context, review *models.Review) error
 	Delete(ctx context.Context, id uint) error
-	List(ctx context.Context) ([]*models.Review, error)
+	List(ctx context.Context, limit, offset uint, orderDesc bool) ([]*models.Review, error)
 	Get(ctx context.Context, id uint) (*models.Review, error)
 }
 
@@ -83,6 +83,6 @@ func (c *core) Get(ctx context.Context, id uint) (*models.Review, error) {
 	return c.cache.Get(ctx, id)
 }
 
-func (c *core) List(ctx context.Context) ([]*models.Review, error) {
-	return c.cache.List(ctx)
+func (c *core) List(ctx context.Context, limit, offset uint, orderDesc bool) ([]*models.Review, error) {
+	return c.cache.List(ctx, limit, offset, orderDesc)
 }

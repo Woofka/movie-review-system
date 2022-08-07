@@ -90,8 +90,8 @@ func (i *implementation) DeleteReview(ctx context.Context, req *pb.DeleteReviewR
 	return &pb.DeleteReviewResponse{}, nil
 }
 
-func (i *implementation) ListReview(ctx context.Context, _ *pb.ListReviewRequest) (*pb.ListReviewResponse, error) {
-	reviews, err := i.review.List(ctx)
+func (i *implementation) ListReview(ctx context.Context, req *pb.ListReviewRequest) (*pb.ListReviewResponse, error) {
+	reviews, err := i.review.List(ctx, uint(req.GetLimit()), uint(req.GetOffset()), req.GetOrderDesc())
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
