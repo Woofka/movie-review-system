@@ -41,38 +41,18 @@ func (r *Repository) List(ctx context.Context, limit, offset uint, orderDesc boo
 }
 
 func (r *Repository) addUser(ctx context.Context, username string) error {
-	var tmp string
-
-	query := "SELECT username FROM public.users where username = $1"
-	row := r.pool.QueryRow(ctx, query, username)
-	err := row.Scan(&tmp)
+	query := "INSERT INTO public.users (username) values ($1) on conflict do nothing"
+	_, err := r.pool.Exec(ctx, query, username)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			query = "INSERT INTO public.users (username) values ($1)"
-			_, err := r.pool.Exec(ctx, query, username)
-			if err != nil {
-				return errors.Wrap(err, "postgres.addUser")
-			}
-		}
 		return errors.Wrap(err, "postgres.addUser")
 	}
 	return nil
 }
 
 func (r *Repository) addMovie(ctx context.Context, movieTitle string) error {
-	var tmp string
-
-	query := "SELECT title FROM public.movies where title = $1"
-	row := r.pool.QueryRow(ctx, query, movieTitle)
-	err := row.Scan(&tmp)
+	query := "INSERT INTO public.movies (title) values ($1) on conflict do nothing"
+	_, err := r.pool.Exec(ctx, query, movieTitle)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			query = "INSERT INTO public.movies (title) values ($1)"
-			_, err := r.pool.Exec(ctx, query, movieTitle)
-			if err != nil {
-				return errors.Wrap(err, "postgres.addMovie")
-			}
-		}
 		return errors.Wrap(err, "postgres.addMovie")
 	}
 	return nil
