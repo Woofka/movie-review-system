@@ -1,7 +1,9 @@
 package add
 
 import (
+	"context"
 	"fmt"
+	"log"
 	"strconv"
 
 	"github.com/pkg/errors"
@@ -28,7 +30,7 @@ func (c *command) Description() string {
 	return "create review. Usage: `/add <reviewer> \"<movie title>\" \"<text of review>\" <rating>`."
 }
 
-func (c *command) Process(argsString string) string {
+func (c *command) Process(ctx context.Context, argsString string) string {
 	if len(argsString) == 0 {
 		return "No arguments were given. See /help for details."
 	}
@@ -44,7 +46,7 @@ func (c *command) Process(argsString string) string {
 		return "4th argument should be integer."
 	}
 
-	err = c.review.Create(&models.Review{
+	err = c.review.Create(ctx, &models.Review{
 		Reviewer:   args[0],
 		MovieTitle: args[1],
 		Text:       args[2],
@@ -54,6 +56,7 @@ func (c *command) Process(argsString string) string {
 		if errors.Is(err, reviewPkg.ErrValidation) {
 			return err.Error()
 		}
+		log.Print(err)
 		return "internal error"
 	}
 

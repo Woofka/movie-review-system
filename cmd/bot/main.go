@@ -1,8 +1,11 @@
 package main
 
 import (
+	"context"
 	"log"
+	"time"
 
+	"github.com/jackc/pgx/v4/pgxpool"
 	"gitlab.ozon.dev/Woofka/movie-review-system/internal/config"
 	botPkg "gitlab.ozon.dev/Woofka/movie-review-system/internal/pkg/bot"
 	cmdAddPkg "gitlab.ozon.dev/Woofka/movie-review-system/internal/pkg/bot/command/add"
@@ -12,14 +15,36 @@ import (
 	cmdListPkg "gitlab.ozon.dev/Woofka/movie-review-system/internal/pkg/bot/command/list"
 	cmdUpdatePkg "gitlab.ozon.dev/Woofka/movie-review-system/internal/pkg/bot/command/update"
 	reviewPkg "gitlab.ozon.dev/Woofka/movie-review-system/internal/pkg/core/review"
+	"gitlab.ozon.dev/Woofka/movie-review-system/internal/pkg/core/review/cache/postgres"
 )
 
 func main() {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	psqlConn := "host=localhost port=5432 user=user password=password dbname=movie_review sslmode=disable"
+	pool, err := pgxpool.Connect(ctx, psqlConn)
+	if err != nil {
+		log.Fatal("can't connect to database", err)
+	}
+	defer pool.Close()
+
+	if err := pool.Ping(ctx); err != nil {
+		log.Fatal("ping database error", err)
+	}
+
+	pgConfig := pool.Config()
+	pgConfig.MaxConnIdleTime = time.Minute
+	pgConfig.MaxConnLifetime = time.Hour
+	pgConfig.MinConns = 2
+	pgConfig.MaxConns = 4
+
 	var review reviewPkg.Interface
-	review = reviewPkg.New()
+	review = reviewPkg.New(postgres.New(pool))
+	// review = reviewPkg.New(local.New())
 
 	var bot botPkg.Interface
-	bot, err := botPkg.New(config.ApiToken, false)
+	bot, err = botPkg.New(config.ApiToken, false)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -48,15 +73,15 @@ func main() {
 	})
 	bot.RegisterHandler(commandHelp)
 
-	go runBot(bot)
+	go runBot(ctx, bot)
 	err = runGRPCServer(review)
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
-func runBot(bot botPkg.Interface) {
-	err := bot.Run()
+func runBot(ctx context.Context, bot botPkg.Interface) {
+	err := bot.Run(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}

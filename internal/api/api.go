@@ -23,8 +23,8 @@ type implementation struct {
 	review reviewPkg.Interface
 }
 
-func (i *implementation) CreateReview(_ context.Context, req *pb.CreateReviewRequest) (*pb.CreateReviewResponse, error) {
-	err := i.review.Create(&models.Review{
+func (i *implementation) CreateReview(ctx context.Context, req *pb.CreateReviewRequest) (*pb.CreateReviewResponse, error) {
+	err := i.review.Create(ctx, &models.Review{
 		Reviewer:   req.Review.GetReviewer(),
 		MovieTitle: req.Review.GetMovieTitle(),
 		Text:       req.Review.GetText(),
@@ -40,8 +40,8 @@ func (i *implementation) CreateReview(_ context.Context, req *pb.CreateReviewReq
 	return &pb.CreateReviewResponse{}, nil
 }
 
-func (i *implementation) GetReview(_ context.Context, req *pb.GetReviewRequest) (*pb.GetReviewResponse, error) {
-	review, err := i.review.Get(uint(req.GetId()))
+func (i *implementation) GetReview(ctx context.Context, req *pb.GetReviewRequest) (*pb.GetReviewResponse, error) {
+	review, err := i.review.Get(ctx, uint(req.GetId()))
 	if err != nil {
 		if errors.Is(err, cachePkg.ErrReviewNotExists) {
 			return nil, status.Error(codes.NotFound, err.Error())
@@ -60,8 +60,8 @@ func (i *implementation) GetReview(_ context.Context, req *pb.GetReviewRequest) 
 	}, nil
 }
 
-func (i *implementation) UpdateReview(_ context.Context, req *pb.UpdateReviewRequest) (*pb.UpdateReviewResponse, error) {
-	err := i.review.Update(&models.Review{
+func (i *implementation) UpdateReview(ctx context.Context, req *pb.UpdateReviewRequest) (*pb.UpdateReviewResponse, error) {
+	err := i.review.Update(ctx, &models.Review{
 		Id:         uint(req.Review.GetId()),
 		Reviewer:   req.Review.GetReviewer(),
 		MovieTitle: req.Review.GetMovieTitle(),
@@ -78,8 +78,8 @@ func (i *implementation) UpdateReview(_ context.Context, req *pb.UpdateReviewReq
 	return &pb.UpdateReviewResponse{}, nil
 }
 
-func (i *implementation) DeleteReview(_ context.Context, req *pb.DeleteReviewRequest) (*pb.DeleteReviewResponse, error) {
-	err := i.review.Delete(uint(req.GetId()))
+func (i *implementation) DeleteReview(ctx context.Context, req *pb.DeleteReviewRequest) (*pb.DeleteReviewResponse, error) {
+	err := i.review.Delete(ctx, uint(req.GetId()))
 	if err != nil {
 		if errors.Is(err, cachePkg.ErrReviewNotExists) {
 			return nil, status.Error(codes.NotFound, err.Error())
@@ -90,8 +90,11 @@ func (i *implementation) DeleteReview(_ context.Context, req *pb.DeleteReviewReq
 	return &pb.DeleteReviewResponse{}, nil
 }
 
-func (i *implementation) ListReview(_ context.Context, _ *pb.ListReviewRequest) (*pb.ListReviewResponse, error) {
-	reviews := i.review.List()
+func (i *implementation) ListReview(ctx context.Context, req *pb.ListReviewRequest) (*pb.ListReviewResponse, error) {
+	reviews, err := i.review.List(ctx, uint(req.GetLimit()), uint(req.GetOffset()), req.GetOrderDesc())
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
 
 	result := make([]*pb.Review, 0, len(reviews))
 	for _, review := range reviews {

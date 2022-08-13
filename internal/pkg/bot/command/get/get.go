@@ -1,7 +1,9 @@
 package get
 
 import (
+	"context"
 	"fmt"
+	"log"
 	"strconv"
 
 	"github.com/pkg/errors"
@@ -28,7 +30,7 @@ func (c *command) Description() string {
 	return "show review. Usage: `/get <id>`."
 }
 
-func (c *command) Process(argsString string) string {
+func (c *command) Process(ctx context.Context, argsString string) string {
 	if len(argsString) == 0 {
 		return "No arguments were given. See /help for details."
 	}
@@ -44,7 +46,7 @@ func (c *command) Process(argsString string) string {
 		return "Argument should be integer."
 	}
 
-	review, err := c.review.Get(uint(id))
+	review, err := c.review.Get(ctx, uint(id))
 	if err != nil {
 		if errors.Is(err, reviewPkg.ErrValidation) {
 			return err.Error()
@@ -52,6 +54,7 @@ func (c *command) Process(argsString string) string {
 		if errors.Is(err, cachePkg.ErrReviewNotExists) {
 			return "Review does not exist"
 		}
+		log.Print(err)
 		return "internal error"
 	}
 
