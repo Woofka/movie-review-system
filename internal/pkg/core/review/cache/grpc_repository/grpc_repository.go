@@ -2,13 +2,13 @@ package grpc_repository
 
 import (
 	"context"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 
 	"github.com/pkg/errors"
 	"gitlab.ozon.dev/Woofka/movie-review-system/internal/pkg/core/review/cache"
 	"gitlab.ozon.dev/Woofka/movie-review-system/internal/pkg/core/review/models"
 	pb "gitlab.ozon.dev/Woofka/movie-review-system/pkg/repository_api"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 func New(client pb.RepositoryClient) cache.Interface {
