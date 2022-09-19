@@ -3,9 +3,7 @@ package main
 import (
 	"context"
 	"log"
-	"time"
 
-	"github.com/jackc/pgx/v4/pgxpool"
 	"gitlab.ozon.dev/Woofka/movie-review-system/internal/config"
 	botPkg "gitlab.ozon.dev/Woofka/movie-review-system/internal/pkg/bot"
 	cmdAddPkg "gitlab.ozon.dev/Woofka/movie-review-system/internal/pkg/bot/command/add"
@@ -15,33 +13,20 @@ import (
 	cmdListPkg "gitlab.ozon.dev/Woofka/movie-review-system/internal/pkg/bot/command/list"
 	cmdUpdatePkg "gitlab.ozon.dev/Woofka/movie-review-system/internal/pkg/bot/command/update"
 	reviewPkg "gitlab.ozon.dev/Woofka/movie-review-system/internal/pkg/core/review"
-	"gitlab.ozon.dev/Woofka/movie-review-system/internal/pkg/core/review/cache/postgres"
+	"gitlab.ozon.dev/Woofka/movie-review-system/internal/pkg/core/review/cache/grpc_repository"
 )
 
 func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	psqlConn := "host=localhost port=5432 user=user password=password dbname=movie_review sslmode=disable"
-	pool, err := pgxpool.Connect(ctx, psqlConn)
+	repositoryClient, err := InitRepositoryClient()
 	if err != nil {
-		log.Fatal("can't connect to database", err)
+		log.Fatal(err)
 	}
-	defer pool.Close()
-
-	if err := pool.Ping(ctx); err != nil {
-		log.Fatal("ping database error", err)
-	}
-
-	pgConfig := pool.Config()
-	pgConfig.MaxConnIdleTime = time.Minute
-	pgConfig.MaxConnLifetime = time.Hour
-	pgConfig.MinConns = 2
-	pgConfig.MaxConns = 4
 
 	var review reviewPkg.Interface
-	review = reviewPkg.New(postgres.New(pool))
-	// review = reviewPkg.New(local.New())
+	review = reviewPkg.New(grpc_repository.New(repositoryClient))
 
 	var bot botPkg.Interface
 	bot, err = botPkg.New(config.ApiToken, false)
